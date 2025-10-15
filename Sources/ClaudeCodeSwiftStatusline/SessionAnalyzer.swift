@@ -54,7 +54,7 @@ struct SessionAnalyzer {
         guard !timestamps.isEmpty else { return nil }
 
         let sessionId = url.deletingPathExtension().lastPathComponent
-        let startTime = timestamps.sorted().first!
+        let startTime = floorToHour(timestamps.sorted().first!)
 
         return SessionData(id: sessionId, startTime: startTime)
     }
@@ -85,7 +85,7 @@ struct SessionAnalyzer {
     }
 
     private func analyzeSessionForContextUsage(_ sessionFile: URL, model: ModelInfo) -> (percent: Int, tokens: Int) {
-        var maxContextTokens = 0
+        var currentContextTokens = 0
 
         parseJsonlFile(sessionFile) { json in
             guard let message = json["message"] as? [String: Any],
@@ -97,12 +97,12 @@ struct SessionAnalyzer {
             let cacheReadTokens = usage["cache_read_input_tokens"] as? Int ?? 0
             let contextTokens = inputTokens + cacheReadTokens
 
-            maxContextTokens = max(maxContextTokens, contextTokens)
+            currentContextTokens = contextTokens
         }
 
         let contextWindowSize = modelManager.getContextWindowSize(for: model)
-        let percent = Double(maxContextTokens) / Double(contextWindowSize) * 100.0
-        return (Int(percent.rounded()), maxContextTokens)
+        let percent = Double(currentContextTokens) / Double(contextWindowSize) * 100.0
+        return (Int(percent.rounded()), currentContextTokens)
     }
 
     private func formatTokenCount(_ tokens: Int) -> String {
@@ -158,5 +158,11 @@ struct SessionAnalyzer {
 
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
         return formatter.date(from: timestamp)
+    }
+
+    private func floorToHour(_ date: Date) -> Date {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month, .day, .hour], from: date)
+        return calendar.date(from: components) ?? date
     }
 }
