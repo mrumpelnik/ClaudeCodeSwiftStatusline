@@ -8,6 +8,7 @@ struct ClaudeCodeSession: Codable {
     let model: ModelInfo
     let cost: CostInfo?
     let workspace: WorkspaceInfo?
+    let contextWindow: ContextWindowInfo
 
     enum CodingKeys: String, CodingKey {
         case sessionId = "session_id"
@@ -15,6 +16,7 @@ struct ClaudeCodeSession: Codable {
         case model
         case cost
         case workspace
+        case contextWindow = "context_window"
     }
 }
 
@@ -43,6 +45,18 @@ struct WorkspaceInfo: Codable {
     enum CodingKeys: String, CodingKey {
         case currentDir = "current_dir"
         case projectDir = "project_dir"
+    }
+}
+
+struct ContextWindowInfo: Codable {
+    let totalInputTokens: Int
+    let totalOutputTokens: Int
+    let contextWindowSize: Int
+
+    enum CodingKeys: String, CodingKey {
+        case totalInputTokens = "total_input_tokens"
+        case totalOutputTokens = "total_output_tokens"
+        case contextWindowSize = "context_window_size"
     }
 }
 

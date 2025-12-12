@@ -2,10 +2,6 @@ import Foundation
 
 struct ModelManager {
 
-    // Configuration constants
-    private let defaultContextWindowSize = 200_000
-    private let extendedContextWindowSize = 1_000_000
-
     // Model name mappings
     private let modelNameMappings = [
         "sonnet": (contains45: "Sonnet 4.5", contains4: "Sonnet 4.0", contains35: "Sonnet 3.5", fallback: "Sonnet"),
@@ -15,15 +11,6 @@ struct ModelManager {
 
     func formatModelName(_ model: ModelInfo) -> String {
         return model.displayName.isEmpty ? formatModelNameFromId(model.id) : model.displayName
-    }
-
-    func getContextWindowSize(for model: ModelInfo) -> Int {
-        // Check model ID for 1M context indicators (e.g., "claude-sonnet-4-1m")
-        // Models with "1m" in ID have 1M token context, others default to 200k
-        if model.id.hasSuffix("-1m") || model.id.contains("1m") {
-            return extendedContextWindowSize
-        }
-        return defaultContextWindowSize
     }
 
     private func formatModelNameFromId(_ model: String) -> String {

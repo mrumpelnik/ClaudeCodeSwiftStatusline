@@ -2,12 +2,11 @@ import Foundation
 
 struct SessionAnalyzer {
 
-    private let modelManager = ModelManager()
-
-    func formatContextPercent(sessionId: String, model: ModelInfo) -> String {
-        let (contextPercent, tokenCount) = getContextUsageFromSession(sessionId, model: model)
+    func formatContextPercent(sessionId: String, contextWindowSize: Int) -> String {
+        let (contextPercent, tokenCount) = getContextUsageFromSession(sessionId, contextWindowSize: contextWindowSize)
         let formattedTokens = formatTokenCount(tokenCount)
-        return "\(formattedTokens) (\(contextPercent)%)"
+        let formattedContextWindow = formatContextWindowSize(contextWindowSize)
+        return "\(formattedTokens)/\(formattedContextWindow) (\(contextPercent)%)"
     }
 
     func getAllRecentSessions(billingWindowHours: Int, secondsPerHour: Int) -> [SessionData] {
@@ -74,17 +73,17 @@ struct SessionAnalyzer {
         return firstTimestamp
     }
 
-    private func getContextUsageFromSession(_ sessionId: String, model: ModelInfo) -> (percent: Int, tokens: Int) {
+    private func getContextUsageFromSession(_ sessionId: String, contextWindowSize: Int) -> (percent: Int, tokens: Int) {
         for projectDir in getClaudeProjectDirectories() {
             let sessionFile = projectDir.appendingPathComponent("\(sessionId).jsonl")
             if FileManager.default.fileExists(atPath: sessionFile.path) {
-                return analyzeSessionForContextUsage(sessionFile, model: model)
+                return analyzeSessionForContextUsage(sessionFile, contextWindowSize: contextWindowSize)
             }
         }
         return (0, 0)
     }
 
-    private func analyzeSessionForContextUsage(_ sessionFile: URL, model: ModelInfo) -> (percent: Int, tokens: Int) {
+    private func analyzeSessionForContextUsage(_ sessionFile: URL, contextWindowSize: Int) -> (percent: Int, tokens: Int) {
         var currentContextTokens = 0
 
         parseJsonlFile(sessionFile) { json in
@@ -100,7 +99,6 @@ struct SessionAnalyzer {
             currentContextTokens = contextTokens
         }
 
-        let contextWindowSize = modelManager.getContextWindowSize(for: model)
         let percent = Double(currentContextTokens) / Double(contextWindowSize) * 100.0
         return (Int(percent.rounded()), currentContextTokens)
     }
@@ -112,6 +110,19 @@ struct SessionAnalyzer {
             return String(format: "%.1fk", k)
         } else {
             return "\(tokens)"
+        }
+    }
+
+    private func formatContextWindowSize(_ size: Int) -> String {
+        // Format context window: 1M for million, 200k for thousands
+        if size >= 1_000_000 {
+            let m = Double(size) / 1_000_000.0
+            return m == 1.0 ? "1M" : String(format: "%.1fM", m)
+        } else if size >= 1000 {
+            let k = Double(size) / 1000.0
+            return k.truncatingRemainder(dividingBy: 1) == 0 ? "\(Int(k))k" : String(format: "%.1fk", k)
+        } else {
+            return "\(size)"
         }
     }
 
