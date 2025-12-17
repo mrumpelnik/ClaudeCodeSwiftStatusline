@@ -52,11 +52,29 @@ struct ContextWindowInfo: Codable {
     let totalInputTokens: Int
     let totalOutputTokens: Int
     let contextWindowSize: Int
+    let currentUsage: CurrentUsage?
 
     enum CodingKeys: String, CodingKey {
         case totalInputTokens = "total_input_tokens"
         case totalOutputTokens = "total_output_tokens"
         case contextWindowSize = "context_window_size"
+        case currentUsage = "current_usage"
+    }
+}
+
+struct CurrentUsage: Codable {
+    let inputTokens: Int
+    let cacheCreationInputTokens: Int
+    let cacheReadInputTokens: Int
+
+    enum CodingKeys: String, CodingKey {
+        case inputTokens = "input_tokens"
+        case cacheCreationInputTokens = "cache_creation_input_tokens"
+        case cacheReadInputTokens = "cache_read_input_tokens"
+    }
+
+    var totalContextTokens: Int {
+        return inputTokens + cacheCreationInputTokens + cacheReadInputTokens
     }
 }
 

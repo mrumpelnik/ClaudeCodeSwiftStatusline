@@ -28,10 +28,10 @@ echo -e "${GREEN}Testing Claude Code Swift Statusline${NC}"
 echo "=================================================="
 echo ""
 
-# Test 1: Basic scenario
-echo -e "${YELLOW}Test 1: Basic scenario${NC}"
-echo "JSON: Basic session with short duration"
-echo '{"session_id": "abc123", "cwd": "/Users/test/MyProject", "model": {"id": "claude-sonnet-4-20250514", "display_name": "Sonnet 4.0"}, "cost": {"total_duration_ms": 180000}, "context_window": {"total_input_tokens": 15000, "total_output_tokens": 5000, "context_window_size": 200000}}' | $STATUSLINE_PATH
+# Test 1: Basic scenario with current_usage
+echo -e "${YELLOW}Test 1: Basic scenario with current_usage${NC}"
+echo "JSON: Basic session with current_usage field (15k + 2k + 8k = 25k tokens)"
+echo '{"session_id": "abc123", "cwd": "/Users/test/MyProject", "model": {"id": "claude-sonnet-4-20250514", "display_name": "Sonnet 4.0"}, "cost": {"total_duration_ms": 180000}, "context_window": {"total_input_tokens": 15000, "total_output_tokens": 5000, "context_window_size": 200000, "current_usage": {"input_tokens": 15000, "cache_creation_input_tokens": 2000, "cache_read_input_tokens": 8000}}}' | $STATUSLINE_PATH
 echo ""
 
 # Test 2: Longer session
@@ -78,8 +78,14 @@ echo ""
 
 # Test 9: 1M Context Model
 echo -e "${YELLOW}Test 9: 1M Context Model${NC}"
-echo "JSON: Model with 1M context window"
-echo '{"session_id": "xyz999", "cwd": "/Users/test/ContextProject", "model": {"id": "claude-opus-4-5-20251101", "display_name": ""}, "cost": {"total_duration_ms": 900000}, "context_window": {"total_input_tokens": 500000, "total_output_tokens": 100000, "context_window_size": 1000000}}' | $STATUSLINE_PATH
+echo "JSON: Model with 1M context window and current_usage"
+echo '{"session_id": "xyz999", "cwd": "/Users/test/ContextProject", "model": {"id": "claude-opus-4-5-20251101", "display_name": ""}, "cost": {"total_duration_ms": 900000}, "context_window": {"total_input_tokens": 500000, "total_output_tokens": 100000, "context_window_size": 1000000, "current_usage": {"input_tokens": 450000, "cache_creation_input_tokens": 30000, "cache_read_input_tokens": 20000}}}' | $STATUSLINE_PATH
+echo ""
+
+# Test 10: Without current_usage field (backward compatibility)
+echo -e "${YELLOW}Test 10: Without current_usage field${NC}"
+echo "JSON: Session without current_usage (should show 0/200k (0%))"
+echo '{"session_id": "legacy123", "cwd": "/Users/test/LegacyProject", "model": {"id": "claude-sonnet-4-20250514", "display_name": "Sonnet 4.0"}, "cost": {"total_duration_ms": 180000}, "context_window": {"total_input_tokens": 15000, "total_output_tokens": 5000, "context_window_size": 200000}}' | $STATUSLINE_PATH
 echo ""
 
 echo -e "${GREEN}All tests completed!${NC}"

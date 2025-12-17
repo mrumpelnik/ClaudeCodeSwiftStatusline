@@ -2,8 +2,11 @@ import Foundation
 
 struct SessionAnalyzer {
 
-    func formatContextPercent(sessionId: String, contextWindowSize: Int) -> String {
-        let (contextPercent, tokenCount) = getContextUsageFromSession(sessionId, contextWindowSize: contextWindowSize)
+    func formatContextPercent(contextWindowSize: Int, currentUsage: CurrentUsage?) -> String {
+        let tokenCount = currentUsage?.totalContextTokens ?? 0
+        let percent = Double(tokenCount) / Double(contextWindowSize) * 100.0
+        let contextPercent = Int(percent.rounded())
+
         let formattedTokens = formatTokenCount(tokenCount)
         let formattedContextWindow = formatContextWindowSize(contextWindowSize)
         return "\(formattedTokens)/\(formattedContextWindow) (\(contextPercent)%)"
@@ -71,36 +74,6 @@ struct SessionAnalyzer {
         }
 
         return firstTimestamp
-    }
-
-    private func getContextUsageFromSession(_ sessionId: String, contextWindowSize: Int) -> (percent: Int, tokens: Int) {
-        for projectDir in getClaudeProjectDirectories() {
-            let sessionFile = projectDir.appendingPathComponent("\(sessionId).jsonl")
-            if FileManager.default.fileExists(atPath: sessionFile.path) {
-                return analyzeSessionForContextUsage(sessionFile, contextWindowSize: contextWindowSize)
-            }
-        }
-        return (0, 0)
-    }
-
-    private func analyzeSessionForContextUsage(_ sessionFile: URL, contextWindowSize: Int) -> (percent: Int, tokens: Int) {
-        var currentContextTokens = 0
-
-        parseJsonlFile(sessionFile) { json in
-            guard let message = json["message"] as? [String: Any],
-                  let usage = message["usage"] as? [String: Any] else {
-                return
-            }
-
-            let inputTokens = usage["input_tokens"] as? Int ?? 0
-            let cacheReadTokens = usage["cache_read_input_tokens"] as? Int ?? 0
-            let contextTokens = inputTokens + cacheReadTokens
-
-            currentContextTokens = contextTokens
-        }
-
-        let percent = Double(currentContextTokens) / Double(contextWindowSize) * 100.0
-        return (Int(percent.rounded()), currentContextTokens)
     }
 
     private func formatTokenCount(_ tokens: Int) -> String {

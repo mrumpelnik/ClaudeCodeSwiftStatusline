@@ -15,7 +15,7 @@ struct StatuslineGenerator {
 
         let pathWithBranch = gitManager.formatPathWithBranch(session.cwd)
         let modelName = modelManager.formatModelName(session.model)
-        let contextPercent = sessionAnalyzer.formatContextPercent(sessionId: session.sessionId, contextWindowSize: session.contextWindow.contextWindowSize)
+        let contextPercent = sessionAnalyzer.formatContextPercent(contextWindowSize: session.contextWindow.contextWindowSize, currentUsage: session.contextWindow.currentUsage)
         let sessionDuration = timeManager.formatSessionDuration(session.cost?.totalDurationMs)
         let timeRemaining = timeManager.calculateTimeRemaining(sessionId: session.sessionId)
         let sessionId = session.sessionId
