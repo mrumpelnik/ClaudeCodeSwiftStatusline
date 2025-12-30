@@ -50,6 +50,9 @@ cp "$RELEASE_PATH" "$INSTALL_PATH"
 # Make sure it's executable
 chmod +x "$INSTALL_PATH"
 
+# Re-sign the binary (copying invalidates the linker signature, causing Killed: 9)
+codesign --force --sign - "$INSTALL_PATH" 2>/dev/null || true
+
 echo -e "${GREEN}✓ Statusline installed successfully${NC}"
 
 # Test the installed version
