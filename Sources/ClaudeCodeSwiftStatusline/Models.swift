@@ -6,17 +6,15 @@ struct ClaudeCodeSession: Codable {
     let sessionId: String
     let cwd: String
     let model: ModelInfo
-    let cost: CostInfo?
-    let workspace: WorkspaceInfo?
     let contextWindow: ContextWindowInfo
+    let rateLimits: RateLimits?
 
     enum CodingKeys: String, CodingKey {
         case sessionId = "session_id"
         case cwd
         case model
-        case cost
-        case workspace
         case contextWindow = "context_window"
+        case rateLimits = "rate_limits"
     }
 }
 
@@ -30,33 +28,12 @@ struct ModelInfo: Codable {
     }
 }
 
-struct CostInfo: Codable {
-    let totalDurationMs: Int?
-
-    enum CodingKeys: String, CodingKey {
-        case totalDurationMs = "total_duration_ms"
-    }
-}
-
-struct WorkspaceInfo: Codable {
-    let currentDir: String?
-    let projectDir: String?
-
-    enum CodingKeys: String, CodingKey {
-        case currentDir = "current_dir"
-        case projectDir = "project_dir"
-    }
-}
 
 struct ContextWindowInfo: Codable {
-    let totalInputTokens: Int
-    let totalOutputTokens: Int
     let contextWindowSize: Int
     let currentUsage: CurrentUsage?
 
     enum CodingKeys: String, CodingKey {
-        case totalInputTokens = "total_input_tokens"
-        case totalOutputTokens = "total_output_tokens"
         case contextWindowSize = "context_window_size"
         case currentUsage = "current_usage"
     }
@@ -78,21 +55,22 @@ struct CurrentUsage: Codable {
     }
 }
 
-// MARK: - Internal Data Models
+struct RateLimits: Codable {
+    let fiveHour: RateLimit?
+    let sevenDay: RateLimit?
 
-struct SessionData {
-    let id: String
-    let startTime: Date
+    enum CodingKeys: String, CodingKey {
+        case fiveHour = "five_hour"
+        case sevenDay = "seven_day"
+    }
 }
 
-struct BillingWindow {
-    let startTime: Date
-    let endTime: Date
-    let sessions: [SessionData]
-    let minutesRemaining: Int?
+struct RateLimit: Codable {
+    let usedPercentage: Double
+    let resetsAt: TimeInterval
 
-    var isActive: Bool {
-        guard let remaining = minutesRemaining else { return false }
-        return remaining > 0
+    enum CodingKeys: String, CodingKey {
+        case usedPercentage = "used_percentage"
+        case resetsAt = "resets_at"
     }
 }
